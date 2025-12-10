@@ -20,6 +20,11 @@ pkg_check_modules(YAML_CPP yaml-cpp)
 include_directories(include)
 include_directories(src)
 
+# Optional kernel headers (for platform-specific sources)
+if(KERNEL_HEADERS_DIR)
+    message(STATUS "Using kernel headers from ${KERNEL_HEADERS_DIR}")
+endif()
+
 # Core source files
 set(FRAMEWORK_SOURCES
     src/core/buffer.cpp
@@ -52,6 +57,10 @@ endif()
 # Create framework library
 add_library(videopipeline STATIC ${FRAMEWORK_SOURCES})
 target_link_libraries(videopipeline Threads::Threads)
+
+if(KERNEL_HEADERS_DIR)
+    target_include_directories(videopipeline PRIVATE ${KERNEL_HEADERS_DIR})
+endif()
 
 if(YAML_CPP_FOUND)
     target_link_libraries(videopipeline ${YAML_CPP_LIBRARIES})
