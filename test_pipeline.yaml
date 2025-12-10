@@ -1,0 +1,24 @@
+pipeline:
+  name: "color_bars_test"
+  platform: "generic"
+  
+blocks:
+  - name: "color_source"
+    type: "TestPatternSource"
+    parameters:
+      pattern: "bars"
+      width: "800"
+      height: "600"
+      fps: "30"
+      format: "RGB24"
+      
+  - name: "debug_sink"
+    type: "ConsoleSink"
+    parameters:
+      verbose: "true"
+      show_pixels: "true"
+      max_pixels: "8"
+      
+connections:
+  - source: "color_source"
+    sink: "debug_sink"

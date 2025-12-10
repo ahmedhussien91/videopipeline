@@ -1,0 +1,8 @@
+# Simple pipeline configuration
+pipeline=color_bars_test
+platform=generic
+
+block=color_source,TestPatternSource,pattern=bars;width=800;height=600;fps=30
+block=debug_sink,ConsoleSink,verbose=true;show_pixels=true;max_pixels=8
+
+connection=color_source,debug_sink

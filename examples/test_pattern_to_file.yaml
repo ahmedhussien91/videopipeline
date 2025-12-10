@@ -1,0 +1,23 @@
+pipeline:
+  name: "test_pattern_to_file"
+  platform: "generic"
+
+blocks:
+  - name: "pattern_source"
+    type: "TestPatternSource"
+    parameters:
+      width: "640"
+      height: "480"
+      fps: "30"
+      pattern: "bars"  # bars, checkerboard, gradient, noise, moving_box
+      
+  - name: "file_output"
+    type: "FileSink"
+    parameters:
+      path: "output_frames"
+      format: "ppm"
+      single_file: "false"
+      queue_depth: "10"
+
+connections:
+  - ["pattern_source.output", "file_output.input"]

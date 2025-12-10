@@ -1,0 +1,31 @@
+pipeline:
+  name: "multi_output_test"
+  platform: "generic"
+
+blocks:
+  - name: "source"
+    type: "TestPatternSource"
+    parameters:
+      width: "800"
+      height: "600"
+      fps: "25"
+      pattern: "gradient"
+      
+  - name: "console_monitor"
+    type: "ConsoleSink"
+    parameters:
+      verbose: "false"
+      show_pixels: "false"
+      queue_depth: "5"
+      
+  - name: "file_recorder"
+    type: "FileSink"
+    parameters:
+      path: "recorded_frames"
+      format: "raw"
+      single_file: "true"
+      queue_depth: "20"
+
+connections:
+  - ["source.output", "console_monitor.input"]
+  - ["source.output", "file_recorder.input"]
