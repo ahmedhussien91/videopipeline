@@ -2,6 +2,9 @@
 #include "video_pipeline/blocks/test_pattern_source.h"
 #include "video_pipeline/blocks/file_sink.h"
 #include "video_pipeline/blocks/console_sink.h"
+#ifdef HAVE_LIBCAMERA
+#include "video_pipeline/blocks/libcamera_source.h"
+#endif
 #include <iostream>
 #include <csignal>
 #include <atomic>
@@ -177,6 +180,14 @@ int main(int argc, char* argv[]) {
     registry.RegisterBlock("FileSink", []() -> BlockPtr {
         return std::make_shared<FileSink>();
     });
+#ifdef HAVE_LIBCAMERA
+    registry.RegisterBlock("LibcameraSource", []() -> BlockPtr {
+        return std::make_shared<LibcameraSource>();
+    });
+    registry.RegisterBlock("CameraSource", []() -> BlockPtr {
+        return std::make_shared<LibcameraSource>();
+    });
+#endif
     
     VP_LOG_INFO_F("Video Pipeline Framework v{}", Framework::GetVersion());
     VP_LOG_INFO_F("Registered {} block types", registry.GetRegisteredCount());

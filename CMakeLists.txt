@@ -15,6 +15,7 @@ find_package(Threads REQUIRED)
 
 # Check for optional dependencies
 pkg_check_modules(YAML_CPP yaml-cpp)
+pkg_check_modules(LIBCAMERA libcamera)
 
 # Include directories
 include_directories(include)
@@ -36,11 +37,11 @@ set(FRAMEWORK_SOURCES
     src/core/config_parser.cpp
     src/core/threading.cpp
     src/core/framework.cpp
-    
+
     src/blocks/test_pattern_source.cpp
     src/blocks/file_sink.cpp
     src/blocks/console_sink.cpp
-    
+
     src/utils/logger.cpp
     src/utils/timer.cpp
 )
@@ -52,6 +53,10 @@ endif()
 
 if(EXISTS "${CMAKE_CURRENT_SOURCE_DIR}/src/platform/linux/framebuffer_sink.cpp")
     list(APPEND FRAMEWORK_SOURCES src/platform/linux/framebuffer_sink.cpp)
+endif()
+
+if(LIBCAMERA_FOUND)
+    list(APPEND FRAMEWORK_SOURCES src/blocks/libcamera_source.cpp)
 endif()
 
 # Create framework library
@@ -68,9 +73,21 @@ if(YAML_CPP_FOUND)
     add_definitions(-DHAVE_YAML_CPP)
 endif()
 
+if(LIBCAMERA_FOUND)
+    target_link_libraries(videopipeline ${LIBCAMERA_LIBRARIES})
+    target_include_directories(videopipeline PUBLIC ${LIBCAMERA_INCLUDE_DIRS})
+    add_definitions(-DHAVE_LIBCAMERA)
+else()
+    message(WARNING "libcamera not found; LibcameraSource will not build")
+endif()
+
 # CLI executable
 add_executable(pipeline_cli src/main.cpp)
 target_link_libraries(pipeline_cli videopipeline)
+
+if(LIBCAMERA_FOUND)
+    target_include_directories(pipeline_cli PRIVATE ${LIBCAMERA_INCLUDE_DIRS})
+endif()
 
 # Examples
 add_subdirectory(examples)

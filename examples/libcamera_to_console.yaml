@@ -1,0 +1,24 @@
+pipeline:
+  name: "rpi_camera_to_console"
+  platform: "linux"
+
+blocks:
+  - name: "camera"
+    type: "LibcameraSource"
+    parameters:
+      camera_id: "0"        # numeric index or exact libcamera id
+      width: "1280"
+      height: "720"
+      fps: "30"
+      format: "YUYV"        # YUYV, RGB24, BGR24, NV12, NV21, UYVY
+      buffer_count: "4"
+
+  - name: "sink"
+    type: "ConsoleSink"
+    parameters:
+      verbose: "false"
+      show_pixels: "false"
+      stats_interval: "1000"
+
+connections:
+  - ["camera.output", "sink.input"]
