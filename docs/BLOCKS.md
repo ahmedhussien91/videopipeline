@@ -21,6 +21,10 @@ Determine what type of block you need:
 | Video Sink | `BaseVideoSink` | Displays, file writers, encoders |
 | Video Processor | `BaseVideoProcessor` | Filters, format converters |
 
+### Built-in Video Sources
+- `TestPatternSource`: synthetic patterns (bars, gradient, noise, moving_box). Parameters: `width`, `height`, `fps`, `pattern`, `color`.
+- `LibcameraSource` (Linux): Raspberry Pi/libcamera stack. Parameters: `camera_id` (index or libcamera id), `width`, `height`, `fps`, `format` (`YUYV`, `RGB24`, `BGR24`, `NV12`, `NV21`, `UYVY`), `buffer_count`. Requires libcamera installed and built with `HAVE_LIBCAMERA`.
+
 ### 2. Implement Required Methods
 
 Every block must implement the core `IBlock` interface methods through its base class.

@@ -10,6 +10,8 @@ The framework supports three configuration formats:
 2. **JSON** - Machine-readable, widely supported  
 3. **Simple Text** - Key-value pairs, easiest for basic pipelines
 
+> Note: YAML requires `yaml-cpp` at build time. If the binary was built without `yaml-cpp`, use the simple/INI format (`.conf`) instead.
+
 ## YAML Configuration
 
 ### Complete Example
@@ -173,6 +175,30 @@ blocks:
 connections:
   - source: "source"
     sink: "sink"
+```
+
+### Simple/INI Example (when yaml-cpp is unavailable)
+
+```
+[pipeline]
+name=rpi_camera_console
+platform=linux
+
+[block:camera]
+type=LibcameraSource
+camera_id=0
+width=1280
+height=720
+fps=30
+format=YUYV
+buffer_count=4
+
+[block:sink]
+type=ConsoleSink
+verbose=false
+
+[connections]
+conn1=camera -> sink
 ```
 
 ## JSON Configuration

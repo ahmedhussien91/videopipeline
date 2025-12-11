@@ -26,3 +26,5 @@ cmake --build build/rpi -j$(nproc)
     -DKERNEL_HEADERS_DIR=/path/to/linux/include
   ```
 - Ensure any extra platform libraries (e.g., V4L2 helpers) are present in the SDK sysroot or added via `PKG_CONFIG_PATH` before configuring.
+- `LibcameraSource` requires `libcamera` headers/libs in the target sysroot. If `libcamera` is missing, the block is skipped at configure time.
+- YAML configs require `yaml-cpp`; otherwise, use the provided `.conf` (INI/simple) examples (e.g., `examples/libcamera_to_console.conf`).
