@@ -4,8 +4,90 @@
 #include <sys/mman.h>
 #include <algorithm>
 #include <cstring>
+#include <atomic>
 
 namespace video_pipeline {
+
+namespace {
+
+class LibcameraFrame : public IVideoFrame {
+public:
+    LibcameraFrame(void* data, size_t length, const FrameInfo& info, libcamera::Request* request, LibcameraSource* owner)
+        : data_(data)
+        , length_(length)
+        , frame_info_(info)
+        , request_(request)
+        , owner_(owner) {}
+
+    ~LibcameraFrame() override = default;
+
+    // IBuffer
+    void* GetData() override { return data_; }
+    const void* GetData() const override { return data_; }
+    size_t GetSize() const override { return frame_info_.GetFrameSize(); }
+    size_t GetCapacity() const override { return length_; }
+
+    const FrameInfo& GetFrameInfo() const override { return frame_info_; }
+    void SetFrameInfo(const FrameInfo& info) override { frame_info_ = info; }
+
+    bool IsValid() const override { return data_ != nullptr && GetFrameSize() <= length_; }
+    void Reset() override { frame_info_ = FrameInfo{}; }
+
+    void AddRef() override { ref_count_.fetch_add(1, std::memory_order_relaxed); }
+    void Release() override {
+        if (ref_count_.fetch_sub(1, std::memory_order_acq_rel) == 1) {
+            if (owner_) {
+                owner_->RecycleRequest(request_);
+            }
+            delete this;
+        }
+    }
+    uint32_t GetRefCount() const override { return ref_count_.load(std::memory_order_relaxed); }
+
+    // IVideoFrame
+    void* GetPlaneData(int plane) override {
+        return (plane == 0) ? data_ : nullptr;
+    }
+    const void* GetPlaneData(int plane) const override {
+        return (plane == 0) ? data_ : nullptr;
+    }
+    size_t GetPlaneSize(int plane) const override {
+        return (plane == 0) ? frame_info_.GetFrameSize() : 0;
+    }
+    uint32_t GetPlaneStride(int plane) const override {
+        return (plane == 0) ? frame_info_.stride : 0;
+    }
+    int GetPlaneCount() const override { return 1; }
+
+    bool CopyFrom(const IVideoFrame& other) override {
+        if (other.GetFrameInfo().GetFrameSize() > length_) return false;
+        std::memcpy(data_, other.GetData(), other.GetFrameInfo().GetFrameSize());
+        frame_info_ = other.GetFrameInfo();
+        return true;
+    }
+
+    BufferPtr Clone() const override {
+        // Zero-copy frames cannot clone without allocation; fall back to copy.
+        auto clone_info = frame_info_;
+        auto clone = CreateVideoFrame(clone_info);
+        if (clone) {
+            clone->CopyFrom(*this);
+        }
+        return clone;
+    }
+
+private:
+    size_t GetFrameSize() const { return frame_info_.GetFrameSize(); }
+
+    void* data_{nullptr};
+    size_t length_{0};
+    FrameInfo frame_info_{};
+    libcamera::Request* request_{nullptr};
+    LibcameraSource* owner_{nullptr};
+    std::atomic<uint32_t> ref_count_{1};
+};
+
+} // namespace
 
 LibcameraSource::LibcameraSource(const std::string& name)
     : BaseVideoSource(name, "LibcameraSource") {}
@@ -293,6 +375,14 @@ bool LibcameraSource::Shutdown() {
     return true;
 }
 
+void LibcameraSource::RecycleRequest(libcamera::Request* request) {
+    if (!running_.load() || !camera_ || !request) {
+        return;
+    }
+    request->reuse(libcamera::Request::ReuseBuffers);
+    camera_->queueRequest(request);
+}
+
 void LibcameraSource::OnRequestComplete(libcamera::Request* request) {
     if (!request || !running_.load()) {
         return;
@@ -316,19 +406,13 @@ void LibcameraSource::OnRequestComplete(libcamera::Request* request) {
     const auto& mapped = it->second;
     FrameInfo info = output_format_;
     info.timestamp_us = Timer::GetCurrentTimestampUs();
+    info.is_hardware_buffer = true;
+    info.hw_handle = const_cast<libcamera::FrameBuffer*>(fb);
 
-    auto frame = CreateVideoFrame(info);
-    if (!frame) {
-        SetError("Failed to allocate video frame");
-        return;
-    }
-
-    std::memcpy(frame->GetData(), mapped.mapped, std::min(info.GetFrameSize(), mapped.length));
-    frame->SetFrameInfo(info);
+    // Zero-copy: wrap libcamera buffer and requeue when the last reference is released.
+    auto frame = VideoFramePtr(new LibcameraFrame(mapped.mapped, mapped.length, info, request, this),
+                               [](IVideoFrame* f) { f->Release(); });
     EmitFrame(frame);
-
-    request->reuse(libcamera::Request::ReuseBuffers);
-    camera_->queueRequest(request);
 }
 
 bool LibcameraSource::SupportsFormat(PixelFormat format) const {

@@ -34,6 +34,9 @@ public:
     std::vector<PixelFormat> GetSupportedFormats() const override;
     std::vector<std::pair<uint32_t, uint32_t>> GetSupportedResolutions() const override;
 
+    // Exposed for zero-copy frame wrapper
+    void RecycleRequest(libcamera::Request* request);
+
 private:
     bool ConfigureCamera();
     bool SetupBuffers();
