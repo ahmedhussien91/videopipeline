@@ -21,7 +21,7 @@ jobs:
         run: ./scripts/vp.sh build native --build-dir build/native
 
       - name: Smoke test (local run)
-        run: ./scripts/vp.sh run local --bin build/native/pipeline_cli --config examples/test_pattern_to_file.yaml --time 1 --no-stats
+        run: ./scripts/vp.sh run local --bin build/native/pipeline_cli --config examples/test_pattern_to_file.conf --time 1 --no-stats
 
   build-cross-aarch64:
     runs-on: ubuntu-latest

@@ -77,12 +77,20 @@ bool FileSink::SetOutputPath(const std::string& path) {
         return false;
     }
     
-    output_path_ = path;
+    if (path.empty()) {
+        VP_LOG_WARNING("Empty output path specified; using default 'output'");
+        output_path_ = "output";
+    } else {
+        output_path_ = path;
+    }
     
     // Create directory if it doesn't exist (for multi-file mode)
     if (!single_file_) {
         try {
-            std::filesystem::create_directories(std::filesystem::path(path).parent_path());
+            auto parent = std::filesystem::path(output_path_).parent_path();
+            if (!parent.empty()) {
+                std::filesystem::create_directories(parent);
+            }
         } catch (const std::exception& e) {
             VP_LOG_WARNING_F("Failed to create directory: {}", e.what());
         }

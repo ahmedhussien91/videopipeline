@@ -2,6 +2,10 @@
 
 #include <string>
 #include <sstream>
+
+#ifdef DEBUG
+#undef DEBUG
+#endif
 #include <memory>
 #include <chrono>
 #include <mutex>
