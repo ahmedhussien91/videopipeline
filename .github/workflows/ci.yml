@@ -1,0 +1,67 @@
+name: CI
+
+on:
+  push:
+  pull_request:
+
+jobs:
+  build-native:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Install dependencies
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y --no-install-recommends \
+            build-essential cmake pkg-config libyaml-cpp-dev
+
+      - name: Build (native)
+        run: ./scripts/vp.sh build native --build-dir build/native
+
+      - name: Smoke test (local run)
+        run: ./scripts/vp.sh run local --bin build/native/pipeline_cli --config examples/test_pattern_to_file.yaml --time 1 --no-stats
+
+  build-cross-aarch64:
+    runs-on: ubuntu-latest
+    env:
+      YOCTO_SDK_URL: ${{ secrets.YOCTO_SDK_URL }}
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Install build deps
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y --no-install-recommends \
+            build-essential cmake pkg-config
+
+      - name: Download Yocto SDK
+        run: |
+          if [ -z "${YOCTO_SDK_URL}" ]; then
+            echo "YOCTO_SDK_URL secret not set; cannot download SDK" >&2
+            exit 1
+          fi
+          curl -L "${YOCTO_SDK_URL}" -o /tmp/yocto-sdk.sh
+          chmod +x /tmp/yocto-sdk.sh
+          /tmp/yocto-sdk.sh -y -d /tmp/yocto-sdk
+
+      - name: Build (Yocto cross)
+        run: |
+          SDK_ENV=$(ls /tmp/yocto-sdk/environment-setup-* | head -n1)
+          if [ ! -f "${SDK_ENV}" ]; then
+            echo "environment-setup-* not found in /tmp/yocto-sdk" >&2
+            exit 1
+          fi
+          source "${SDK_ENV}"
+          ./scripts/vp.sh build yocto --sdk-env "${SDK_ENV}" --build-dir build/rpi-yocto-ci
+
+  docker-build:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Build Docker image
+        run: docker build -t camera-pipeline -f docker/Dockerfile .
