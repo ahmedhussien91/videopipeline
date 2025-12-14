@@ -168,12 +168,13 @@ bool FileSink::WriteFrameRaw(VideoFramePtr frame) {
     size_t size = frame->GetSize();
     
     output_file_->write(static_cast<const char*>(data), size);
+    bool ok = output_file_->good();
     
     if (!single_file_) {
         CloseOutputFile();
     }
     
-    return output_file_->good();
+    return ok;
 }
 
 bool FileSink::WriteFramePPM(VideoFramePtr frame) {
@@ -208,8 +209,9 @@ bool FileSink::WriteFramePPM(VideoFramePtr frame) {
         }
     }
     
+    bool ok = output_file_->good();
     CloseOutputFile();
-    return output_file_->good();
+    return ok;
 }
 
 bool FileSink::WriteFramePGM(VideoFramePtr frame) {
@@ -242,8 +244,9 @@ bool FileSink::WriteFramePGM(VideoFramePtr frame) {
         output_file_->write(reinterpret_cast<const char*>(data), gray_size);
     }
     
+    bool ok = output_file_->good();
     CloseOutputFile();
-    return output_file_->good();
+    return ok;
 }
 
 bool FileSink::WriteFrameYUV(VideoFramePtr frame) {
@@ -268,12 +271,13 @@ bool FileSink::WriteFrameYUV(VideoFramePtr frame) {
     size_t size = frame->GetSize();
     
     output_file_->write(static_cast<const char*>(data), size);
+    bool ok = output_file_->good();
     
     if (!single_file_) {
         CloseOutputFile();
     }
     
-    return output_file_->good();
+    return ok;
 }
 
 std::string FileSink::GenerateFilename(const std::string& base_path, size_t frame_number, const std::string& extension) {
