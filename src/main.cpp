@@ -2,6 +2,7 @@
 #include "video_pipeline/blocks/test_pattern_source.h"
 #include "video_pipeline/blocks/file_sink.h"
 #include "video_pipeline/blocks/console_sink.h"
+#include "video_pipeline/blocks/tcp_sink.h"
 #ifdef HAVE_LIBCAMERA
 #include "video_pipeline/blocks/libcamera_source.h"
 #endif
@@ -179,6 +180,9 @@ int main(int argc, char* argv[]) {
     });
     registry.RegisterBlock("FileSink", []() -> BlockPtr {
         return std::make_shared<FileSink>();
+    });
+    registry.RegisterBlock("TcpSink", []() -> BlockPtr {
+        return std::make_shared<TcpSink>();
     });
 #ifdef HAVE_LIBCAMERA
     registry.RegisterBlock("LibcameraSource", []() -> BlockPtr {

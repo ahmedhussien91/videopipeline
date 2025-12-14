@@ -1,0 +1,24 @@
+pipeline:
+  name: "rpi_camera_to_tcp"
+  platform: "linux"
+
+blocks:
+  - name: "camera"
+    type: "LibcameraSource"
+    parameters:
+      camera_id: "0"
+      width: "1280"
+      height: "720"
+      fps: "30"
+      format: "YUYV"
+      buffer_count: "4"
+
+  - name: "sink"
+    type: "TcpSink"
+    parameters:
+      host: "192.168.1.10"   # receiver address running `nc -l -p 5000`
+      port: "5000"
+      reconnect: "true"
+
+connections:
+  - ["camera.output", "sink.input"]

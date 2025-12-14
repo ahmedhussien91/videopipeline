@@ -25,6 +25,11 @@ Determine what type of block you need:
 - `TestPatternSource`: synthetic patterns (bars, gradient, noise, moving_box). Parameters: `width`, `height`, `fps`, `pattern`, `color`.
 - `LibcameraSource` (Linux): Raspberry Pi/libcamera stack. Parameters: `camera_id` (index or libcamera id), `width`, `height`, `fps`, `format` (`YUYV`, `RGB24`, `BGR24`, `NV12`, `NV21`, `UYVY`), `buffer_count`. Requires libcamera installed and built with `HAVE_LIBCAMERA`.
 
+### Built-in Video Sinks
+- `ConsoleSink`: logs frame metadata (and optionally pixel samples). Parameters: `verbose`, `show_pixels`, `queue_depth`, `blocking`.
+- `FileSink`: writes raw/PPM/PGM/YUV frames to disk. Parameters: `path`, `format` (`raw`, `ppm`, `pgm`, `yuv`), `single_file`, `queue_depth`, `blocking`.
+- `TcpSink`: streams raw frame bytes over TCP to a host/port for tools like `nc`/`ffplay`. Parameters: `host`, `port`, `reconnect`, `queue_depth`, `blocking`. Receiver must know the frame format (e.g., `-f rawvideo -pixel_format yuyv422 -video_size 1280x720`).
+
 ### 2. Implement Required Methods
 
 Every block must implement the core `IBlock` interface methods through its base class.

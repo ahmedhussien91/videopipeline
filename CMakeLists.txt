@@ -41,6 +41,7 @@ set(FRAMEWORK_SOURCES
     src/blocks/test_pattern_source.cpp
     src/blocks/file_sink.cpp
     src/blocks/console_sink.cpp
+    src/blocks/tcp_sink.cpp
 
     src/utils/logger.cpp
     src/utils/timer.cpp

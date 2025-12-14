@@ -371,6 +371,19 @@ connection=src,sink
 | `single_file` | Overwrite vs sequence | false | "true", "false" |
 | `filename_pattern` | Pattern for sequence | frame_%06d | printf-style format |
 
+### TcpSink Parameters
+
+| Parameter | Description | Default | Options |
+|-----------|-------------|---------|---------|
+| `host` | TCP receiver address | 127.0.0.1 | Any IPv4 address |
+| `port` | TCP receiver port | 5000 | 1-65535 |
+| `reconnect` | Reconnect after failures | true | "true", "false" |
+| `queue_depth` | Max buffered frames | 10 | 1-1000 |
+| `blocking` | Block when queue is full | true | "true", "false" |
+
+> The receiver must know the frame format. Example (YUYV 1280x720):  
+> `nc -l -p 5000 | ffplay -fflags nobuffer -flags low_delay -framedrop -f rawvideo -pixel_format yuyv422 -video_size 1280x720 -`
+
 ## Advanced Configuration
 
 ### Conditional Blocks
