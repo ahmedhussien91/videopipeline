@@ -72,7 +72,7 @@ run_cmd() {
     if [[ "${dry_run}" == "1" ]]; then
         printf '[DRY] %s\n' "$*"
     else
-        eval "$@"
+        ( eval "$@" )
     fi
 }
 
@@ -89,9 +89,9 @@ case "${command}:${subcommand}" in
             esac
         done
         run_cmd "mkdir -p \"${build_dir}\""
-        run_cmd "cd \"${build_dir}\" && cmake -G \"${generator}\" -DCMAKE_BUILD_TYPE=\"${build_type}\" \"${ROOT_DIR}\""
+        run_cmd "(cd \"${build_dir}\" && cmake -G \"${generator}\" -DCMAKE_BUILD_TYPE=\"${build_type}\" \"${ROOT_DIR}\")"
         cores="$(nproc 2>/dev/null || sysctl -n hw.ncpu 2>/dev/null || echo 4)"
-        run_cmd "cd \"${build_dir}\" && cmake --build . --parallel \"${cores}\""
+        run_cmd "(cd \"${build_dir}\" && cmake --build . --parallel \"${cores}\")"
         echo "Native build ready at ${build_dir}/pipeline_cli"
         ;;
 
@@ -115,9 +115,9 @@ case "${command}:${subcommand}" in
         [[ ! -f "${toolchain_file}" ]] && err "Toolchain file not found: ${toolchain_file}"
         run_cmd "source \"${sdk_env}\""
         run_cmd "mkdir -p \"${build_dir}\""
-        run_cmd "cd \"${build_dir}\" && cmake -G \"${generator}\" -DCMAKE_BUILD_TYPE=\"${build_type}\" -DCMAKE_TOOLCHAIN_FILE=\"${toolchain_file}\" \"${ROOT_DIR}\""
+        run_cmd "(cd \"${build_dir}\" && cmake -G \"${generator}\" -DCMAKE_BUILD_TYPE=\"${build_type}\" -DCMAKE_TOOLCHAIN_FILE=\"${toolchain_file}\" \"${ROOT_DIR}\")"
         cores="$(nproc 2>/dev/null || sysctl -n hw.ncpu 2>/dev/null || echo 4)"
-        run_cmd "cd \"${build_dir}\" && cmake --build . --parallel \"${cores}\""
+        run_cmd "(cd \"${build_dir}\" && cmake --build . --parallel \"${cores}\")"
         echo "Yocto build ready at ${build_dir}/pipeline_cli"
         ;;
 
