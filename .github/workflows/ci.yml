@@ -64,7 +64,7 @@ jobs:
 
       - name: Build (Yocto cross)
         run: |
-          SDK_ENV=$(ls /tmp/yocto-sdk-root/environment-setup-* 2>/dev/null | head -n1)
+          SDK_ENV=$(ls /tmp/yocto-sdk-root/poky/5.0.8/environment-setup-* 2>/dev/null | head -n1)
           if [ ! -f "${SDK_ENV}" ]; then
             echo "environment-setup-* not found in /tmp/yocto-sdk-root" >&2
             exit 1
