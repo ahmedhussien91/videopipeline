@@ -46,17 +46,18 @@ jobs:
           curl -L "${YOCTO_SDK_URL}" -o /tmp/yocto-sdk
           FILETYPE="$(file -b /tmp/yocto-sdk)"
           echo "SDK file type: ${FILETYPE}"
-          mkdir -p /tmp/yocto-sdk-root
+          sudo mkdir -p /opt/yocto
+          INSTALL_DIR="/opt/yocto"
           if echo "${FILETYPE}" | grep -qi "gzip compressed data"; then
-            tar -xzf /tmp/yocto-sdk -C /tmp/yocto-sdk-root
+            sudo tar -xzf /tmp/yocto-sdk -C "${INSTALL_DIR}"
           elif echo "${FILETYPE}" | grep -qi "xz compressed data"; then
-            tar -xJf /tmp/yocto-sdk -C /tmp/yocto-sdk-root
+            sudo tar -xJf /tmp/yocto-sdk -C "${INSTALL_DIR}"
           elif echo "${FILETYPE}" | grep -qi "POSIX shell script"; then
             chmod +x /tmp/yocto-sdk
-            /tmp/yocto-sdk -y -d /tmp/yocto-sdk-root
+            sudo /tmp/yocto-sdk -y -d "${INSTALL_DIR}"
           elif echo "${FILETYPE}" | grep -qi "ELF 64-bit LSB executable"; then
             chmod +x /tmp/yocto-sdk
-            /tmp/yocto-sdk -y -d /tmp/yocto-sdk-root
+            sudo /tmp/yocto-sdk -y -d "${INSTALL_DIR}"
           else
             echo "Unsupported SDK payload type: ${FILETYPE}" >&2
             exit 1
@@ -64,9 +65,9 @@ jobs:
 
       - name: Build (Yocto cross)
         run: |
-          SDK_ENV=$(ls /tmp/yocto-sdk-root/poky/5.0.8/environment-setup-* 2>/dev/null | head -n1)
+          SDK_ENV=$(ls /opt/yocto/**/environment-setup-* 2>/dev/null | head -n1)
           if [ ! -f "${SDK_ENV}" ]; then
-            echo "environment-setup-* not found in /tmp/yocto-sdk-root" >&2
+            echo "environment-setup-* not found in /opt/yocto" >&2
             exit 1
           fi
           source "${SDK_ENV}"
